@@ -6,24 +6,39 @@ on:
     paths-ignore:
       - '**/README.md'
 
+env:
+  ## github.repository as <account>/<repo>
+  IMAGE_NAME: ryuupendragon/caddy-crowdsec
+
 jobs:
   build-and-push:
-    name: Build Docker image and push to Github Container Registry
+    name: Build Docker image and push to DockerHub Container Registry
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          token: ${{ secrets.CADDY_CROWDSEC_TOKEN }}
-      
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.CADDY_CROWDSEC_TOKEN }}
-      - name: Build the hello-docker Docker image
-        run: |
-          docker build . --tag ghcr.io/ryuupendragon/caddy-crowdsec:latest
-          docker run ghcr.io/ryuupendragon/caddy-crowdsec:latest
-          docker push ghcr.io/ryuupendragon/caddy-crowdsec:latest
+          provenance: false
+          context: .
+          platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
+          push: true
+          tags: |
+            docker.io/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image digest
+        run: echo ${{ steps.build-and-push.outputs.digest }}
