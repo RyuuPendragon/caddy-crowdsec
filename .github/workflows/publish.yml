@@ -6,10 +6,6 @@ on:
     paths-ignore:
       - '**/README.md'
 
-env:
-  ## github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
   ## define job to build and publish docker image
   build-and-push-docker-image:
@@ -48,7 +44,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           tags: |
-            ghcr.io/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/ryuupendragon/caddy-crowdsec:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
