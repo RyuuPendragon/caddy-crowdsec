@@ -7,4 +7,6 @@ RUN xcaddy build \
 
 FROM caddy:2.10.0
 
+RUN apk add --no-cache tzdata
+
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
